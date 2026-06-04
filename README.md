@@ -20,15 +20,25 @@ A Flask web app that builds labour-hire quotes end to end: pulls live job & clie
 
 ```mermaid
 flowchart TD
-    A[☁️ SharePoint / Microsoft Graph\njobs · clients · people · rates] --> B[📋 Select job\nauto-fills project & client info]
-    B --> C[ Configure rates per role\nWeekday · Weekend · Public Holiday\n+ ordinary / overtime thresholds]
-    C --> D[ Manning roster\nday-by-day shifts\nWA public-holiday detection]
-    D --> E[ Cost engine\nhours split by day type\n× rate group + client markup]
-    E --> F1[ Excel workbook\nrates · manning · allocation · pricing]
-    E --> F2[ PDF quotation\nformal client document]
-    F1 --> G[ Upload to SharePoint]
+    A[SharePoint / Microsoft Graph\njobs · clients · people · rates] --> B[Select job\nauto-fills project & client info]
+    B --> C[Configure rates per role\nWeekday · Weekend · Public Holiday\n+ ordinary / overtime thresholds]
+    C --> D[Manning roster\nday-by-day shifts\nWA public-holiday detection]
+    D --> E[Cost engine\nhours split by day type\n× rate group + client markup]
+    E --> F1[Excel workbook\nrates · manning · allocation · pricing]
+    E --> F2[PDF quotation\nformal client document]
+    F1 --> G[Upload to SharePoint]
     F2 --> G
-    E --> H[( Azure Blob\njob cache + saved-quote index)]
+    E --> H[(Azure Blob\njob cache + saved-quote index)]
+
+    style A fill:#4A90D9,stroke:#2C6FAC,color:#fff
+    style B fill:#5BA85A,stroke:#3D7A3C,color:#fff
+    style C fill:#E8A838,stroke:#B87E20,color:#fff
+    style D fill:#E8A838,stroke:#B87E20,color:#fff
+    style E fill:#8B5CF6,stroke:#6D3FD4,color:#fff
+    style F1 fill:#2EAF7D,stroke:#1D8560,color:#fff
+    style F2 fill:#2EAF7D,stroke:#1D8560,color:#fff
+    style G fill:#4A90D9,stroke:#2C6FAC,color:#fff
+    style H fill:#6B7280,stroke:#4B5563,color:#fff
 ```
 
 ---

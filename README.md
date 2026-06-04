@@ -1,32 +1,18 @@
 # Labour Hire — Online Quote & Pricing Tool
 
-A Flask web app that builds labour-hire quotes end to end: it pulls live job &
-client data from **SharePoint (Microsoft Graph)**, lets you configure shift
-types, weekday / weekend / public-holiday rates and a day-by-day manning roster,
-then generates a polished **Excel** workbook and a formal **PDF** quotation —
-and uploads the result straight back to SharePoint. Built for mining, civil and
-industrial labour hire; deployed on **Azure App Service** with data persisted in
-**Azure Blob Storage**.
+A Flask web app that builds labour-hire quotes end to end: pulls live job & client data from **SharePoint (Microsoft Graph)**, configures tiered shift rates, builds a day-by-day manning roster, then generates a polished **Excel** workbook and formal **PDF** quotation — uploaded straight back to SharePoint. Built for mining, civil and industrial labour hire; deployed on **Azure App Service**.
 
 ---
 
-## Features
+## Screenshots
 
-- **Live SharePoint integration** — jobs, clients, people and rates via Microsoft
-  Graph (client-credentials auth); selecting a job auto-fills the whole form.
-- **Tiered rate model** — separate weekday / weekend / public-holiday rates, with
-  ordinary + overtime (ORD) thresholds per role.
-- **Automatic WA public-holiday detection** — holiday dates drive which rate
-  group applies, no manual flagging.
-- **Manning roster** — day-by-day shift grid with one-click *Repeat week /
-  weekday / weekend / public-holiday* pattern fill and PH highlighting.
-- **Live cost engine** — hours split by day type × the matching rate group, plus
-  client markup, with a real-time pricing summary.
-- **Excel generator** (openpyxl) — project info, rate card, manning table,
-  grouped cost-allocation breakdown and pricing summary.
-- **PDF generator** (reportlab) — a formal, client-ready quotation document.
-- **Azure Blob storage** with a transparent local-file fallback for dev, and
-  gzipped responses for fast page loads.
+### Rate configuration & live cost calculation
+
+![Rate configuration and cost calculation](screenshots/github_demo_calculation_1.png)
+
+### Manning roster & pricing summary
+
+![Manning roster and pricing summary](screenshots/github_demo_calculation_2.png)
 
 ---
 
@@ -34,16 +20,29 @@ industrial labour hire; deployed on **Azure App Service** with data persisted in
 
 ```mermaid
 flowchart TD
-    A[☁️ SharePoint / Microsoft Graph<br/>jobs · clients · people · rates] --> B[📋 Select job<br/>auto-fills project & client info]
-    B --> C[💲 Configure rates per role<br/>Weekday · Weekend · Public Holiday<br/>+ ordinary/overtime thresholds]
-    C --> D[🗓️ Manning roster<br/>day-by-day shifts<br/>WA public-holiday detection]
-    D --> E[🧮 Cost engine<br/>hours split by day type<br/>× rate group + client markup]
-    E --> F1[📊 Excel workbook<br/>rates · manning · allocation · pricing]
-    E --> F2[📄 PDF quotation<br/>formal client document]
-    F1 --> G[⬆️ Upload to SharePoint]
+    A[☁️ SharePoint / Microsoft Graph\njobs · clients · people · rates] --> B[📋 Select job\nauto-fills project & client info]
+    B --> C[ Configure rates per role\nWeekday · Weekend · Public Holiday\n+ ordinary / overtime thresholds]
+    C --> D[ Manning roster\nday-by-day shifts\nWA public-holiday detection]
+    D --> E[ Cost engine\nhours split by day type\n× rate group + client markup]
+    E --> F1[ Excel workbook\nrates · manning · allocation · pricing]
+    E --> F2[ PDF quotation\nformal client document]
+    F1 --> G[ Upload to SharePoint]
     F2 --> G
-    E --> H[(🗄️ Azure Blob<br/>job cache + saved-quote index)]
+    E --> H[( Azure Blob\njob cache + saved-quote index)]
 ```
+
+---
+
+## Features
+
+- **Live SharePoint integration** — jobs, clients, people and rates via Microsoft Graph (client-credentials auth); selecting a job auto-fills the whole form
+- **Tiered rate model** — separate weekday / weekend / public-holiday rates, with ordinary + overtime (ORD) thresholds per role
+- **Automatic WA public-holiday detection** — holiday dates drive which rate group applies, no manual flagging
+- **Manning roster** — day-by-day shift grid with one-click *Repeat week / weekday / weekend / public-holiday* pattern fill and PH highlighting
+- **Live cost engine** — hours split by day type × matching rate group, plus client markup, with real-time pricing summary
+- **Excel generator** (openpyxl) — project info, rate card, manning table, grouped cost-allocation breakdown and pricing summary
+- **PDF generator** (reportlab) — a formal, client-ready quotation document
+- **Azure Blob storage** with transparent local-file fallback for dev, and gzipped responses for fast page loads
 
 ---
 
@@ -77,8 +76,8 @@ pip install -r requirements.txt
 
 ### 3. Configure `.env`
 
-```bash
-# Microsoft Graph (SharePoint) — app registration
+```env
+# Microsoft Graph (SharePoint)
 SHAREPOINT_TENANT_ID=your-tenant-guid
 SHAREPOINT_CLIENT_ID=your-app-client-id
 SHAREPOINT_CLIENT_SECRET=your-app-client-secret
@@ -86,7 +85,7 @@ SHAREPOINT_HOST=yourtenant.sharepoint.com
 SITE_NAME=BMS
 SITE_NAME1=IMS
 
-# Azure Blob Storage (data persistence)
+# Azure Blob Storage
 BLOB_CONNECTION_STRING=your_azure_connection_string
 CONTAINER=marlu-online-quote
 ```
@@ -97,20 +96,17 @@ CONTAINER=marlu-online-quote
 python app.py --serve
 ```
 
-Visit `http://localhost:5000`. Run `python app.py` (no `--serve`) to refresh the
-job cache from SharePoint.
+Visit `http://localhost:5000`. Run `python app.py` (no `--serve`) to refresh the job cache from SharePoint.
 
 ---
 
 ## Usage
 
-1. **Pick a job** — project, client, site and dates auto-fill from SharePoint.
-2. **Set rates** per role — weekday, weekend and public-holiday `$/hr`.
-3. **Build the manning roster** — fill shifts day by day, or use the *Repeat*
-   buttons to copy a week forward.
-4. **Review the live pricing summary** — cost split by weekday / weekend / PH,
-   markup and project total.
-5. **Generate & Upload Quote** (Excel → SharePoint) or **Download PDF Quote**.
+1. **Pick a job** — project, client, site and dates auto-fill from SharePoint
+2. **Set rates** per role — weekday, weekend and public-holiday `$/hr`
+3. **Build the manning roster** — fill shifts day by day, or use *Repeat* buttons to copy a week forward
+4. **Review the live pricing summary** — cost split by weekday / weekend / PH, markup and project total
+5. **Generate & Upload Quote** (Excel → SharePoint) or **Download PDF Quote**
 
 ---
 
@@ -136,13 +132,7 @@ marlu_labour_hire_online_quote/
 
 ## Notes
 
-- **Data storage** — `quote_data.json` (job cache) and `quotes.json` (saved-quote
-  index) live in **Azure Blob Storage** when `BLOB_CONNECTION_STRING` is set,
-  otherwise in a local folder. The data survives restarts, re-deploys and scales
-  across instances.
-- **Refresh** — re-sync the job cache from SharePoint via `/api/refresh-data` or
-  `python app.py`.
-- **Security** — all secrets (SharePoint app credentials, Blob connection string)
-  are supplied via `.env` / Azure App Settings and are **never committed**.
-- **Deployment** — see [`DEPLOY.md`](DEPLOY.md) for the full Azure App Service +
-  GitHub CI/CD setup.
+- **Data storage** — `quote_data.json` (job cache) and `quotes.json` (saved-quote index) live in Azure Blob Storage when `BLOB_CONNECTION_STRING` is set, otherwise in a local folder
+- **Refresh** — re-sync the job cache from SharePoint via `/api/refresh-data` or `python app.py`
+- **Security** — all secrets are supplied via `.env` / Azure App Settings and are **never committed**
+- **Deployment** — see [`DEPLOY.md`](DEPLOY.md) for the full Azure App Service + GitHub CI/CD setup

@@ -31,8 +31,8 @@ static/quotes.json
 # Brand logo binaries — live in Blob (brand/…), seeded via upload_brand.py
 brand_assets/
 
-# Screenshots may contain real client/quote data — keep out of a public repo
-screenshots/
+# NOTE: screenshots/ is tracked for the README demo images. Only commit
+# DESENSITISED screenshots here — never real client/quote data.
 
 # Local scratch / one-off helper scripts
 _*.py

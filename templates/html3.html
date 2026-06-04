@@ -296,6 +296,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;fo
 .alloc-tbl th.gph{background:#7a4ea0}
 .alloc-tbl .ot{color:#c53030;font-weight:700}
 .alloc-tbl .cwk{background:#fff7ef}
+/* Dynamic column groups: hidden when there is no weekend / public-holiday work */
+.alloc-tbl.hide-wk col.gwk,.alloc-tbl.hide-wk .gwk,.alloc-tbl.hide-wk .cwk{display:none}
+.alloc-tbl.hide-ph col.gph,.alloc-tbl.hide-ph .gph,.alloc-tbl.hide-ph .cph{display:none}
+/* Quick-fill weekend / public-holiday rates from weekday × a multiplier */
+.rate-mult-bar{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:6px 0 2px;font-size:11px;color:#666}
+.rate-mult-bar .rmb-lbl{font-weight:700;color:#2e8b8b}
+.rate-mult-bar .rmb-in{width:56px;padding:3px 5px;border:1.5px solid #dde1e7;border-radius:5px;font-size:11px;font-family:inherit;text-align:center;background:#f8f9fb}
+.rate-mult-bar .rmb-in:focus{border-color:#2e8b8b;background:#fff;outline:none}
+.rate-mult-bar .rmb-sep{color:#cbd2da;margin:0 2px}
 .alloc-tbl .cph{background:#f5eefb}
 .alloc-tbl .charge{font-weight:700}
 .alloc-tbl tr:hover td{background:#f8fcff}
@@ -697,6 +706,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;fo
         New Roles <span style="font-size:10px;font-weight:400;color:#888;text-transform:none">(set rates &amp; OT threshold)</span>
       </div>
 
+      <div class="rate-mult-bar">
+        <span class="rmb-lbl">Quick-fill:</span>
+        <span>Weekend = Weekday ×</span>
+        <input type="number" id="wkMult_new" value="1.5" step="0.05" min="0" class="rmb-in" title="All weekend rates = matching weekday rate × this">
+        <button type="button" class="btn btn-sm" onclick="applyRateMult('new','wk')">Apply</button>
+        <span class="rmb-sep">·</span>
+        <span>Public Holiday = DS ORD ×</span>
+        <input type="number" id="phMult_new" value="2" step="0.05" min="0" class="rmb-in" title="PH rate = weekday DS ORD × this">
+        <button type="button" class="btn btn-sm" onclick="applyRateMult('new','ph')">Apply</button>
+      </div>
+
       <div class="role-table-wrap compact-role-table">
       <table class="role-setup-tbl">
         <thead>
@@ -726,6 +746,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;fo
       <button class="add-role-btn" onclick="addRole('new')">+ Add New Role</button>
 
       <div class="slbl" style="margin-top:16px">Staffing Requirements</div>
+
+      <div class="rate-mult-bar">
+        <span class="rmb-lbl">Quick-fill:</span>
+        <span>Weekend = Weekday ×</span>
+        <input type="number" id="wkMult_staff" value="1.5" step="0.05" min="0" class="rmb-in" title="All weekend rates = matching weekday rate × this">
+        <button type="button" class="btn btn-sm" onclick="applyRateMult('staff','wk')">Apply</button>
+        <span class="rmb-sep">·</span>
+        <span>Public Holiday = DS ORD ×</span>
+        <input type="number" id="phMult_staff" value="2" step="0.05" min="0" class="rmb-in" title="PH rate = weekday DS ORD × this">
+        <button type="button" class="btn btn-sm" onclick="applyRateMult('staff','ph')">Apply</button>
+      </div>
+
       <div class="role-table-wrap compact-role-table">
       <table class="role-setup-tbl">
         <thead>
@@ -809,12 +841,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;fo
         <div>
           <div style="font-size:12px;font-weight:700;color:#1a6060;margin-bottom:5px">Labour Allocation Details</div>
           <div class="alloc-wrap">
-            <table class="alloc-tbl">
+            <table class="alloc-tbl" id="allocTbl">
               <colgroup>
                 <col style="width:17.54%"><col style="width:5.85%"><col style="width:5.85%">
                 <col style="width:2.924%"><col style="width:2.924%"><col style="width:2.924%"><col style="width:2.924%"><col style="width:2.924%"><col style="width:2.924%"><col style="width:2.924%"><col style="width:2.924%"><col style="width:2.924%">
-                <col style="width:2.924%"><col style="width:2.924%"><col style="width:2.924%"><col style="width:2.924%"><col style="width:2.924%"><col style="width:2.924%"><col style="width:2.924%"><col style="width:2.924%"><col style="width:2.924%">
-                <col style="width:2.924%"><col style="width:2.924%"><col style="width:2.924%"><col style="width:2.924%">
+                <col class="gwk" style="width:2.924%"><col class="gwk" style="width:2.924%"><col class="gwk" style="width:2.924%"><col class="gwk" style="width:2.924%"><col class="gwk" style="width:2.924%"><col class="gwk" style="width:2.924%"><col class="gwk" style="width:2.924%"><col class="gwk" style="width:2.924%"><col class="gwk" style="width:2.924%">
+                <col class="gph" style="width:2.924%"><col class="gph" style="width:2.924%"><col class="gph" style="width:2.924%"><col class="gph" style="width:2.924%">
                 <col style="width:3.216%"><col style="width:3.216%">
               </colgroup>
               <thead>
@@ -850,9 +882,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;fo
             <div class="sp-r"><span class="sl">Night Shifts</span><span class="sv" id="sp_ns_sh">—</span></div>
             <div class="sp-r"><span class="sl">Weekday DS Cost</span><span class="sv" id="sp_wd_ds">—</span></div>
             <div class="sp-r"><span class="sl">Weekday NS Cost</span><span class="sv" id="sp_wd_ns">—</span></div>
-            <div class="sp-r"><span class="sl">Weekend DS Cost</span><span class="sv" id="sp_wk_ds">—</span></div>
-            <div class="sp-r"><span class="sl">Weekend NS Cost</span><span class="sv" id="sp_wk_ns">—</span></div>
-            <div class="sp-r"><span class="sl">Public Holiday Cost</span><span class="sv" id="sp_ph">—</span></div>
+            <div class="sp-r" id="sp_row_wk_ds"><span class="sl">Weekend DS Cost</span><span class="sv" id="sp_wk_ds">—</span></div>
+            <div class="sp-r" id="sp_row_wk_ns"><span class="sl">Weekend NS Cost</span><span class="sv" id="sp_wk_ns">—</span></div>
+            <div class="sp-r" id="sp_row_ph"><span class="sl">Public Holiday Cost</span><span class="sv" id="sp_ph">—</span></div>
             <div class="sp-r"><span class="sl">Total Labour (base)</span><span class="sv" id="sp_labour">—</span></div>
           </div>
           <div class="sp-sec">
@@ -865,7 +897,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;fo
             <div class="sp-r"><span class="sl">Other Costs</span><span class="sv" id="sp_tc_other">—</span></div>
             <div class="sp-r"><span class="sl">Role Client Markup</span><span class="sv" id="sp_tc_markup">—</span></div>
           </div>
-          <div class="sp-grand"><span class="sl">Project Total Price</span><span class="sv" id="sp_grand">—</span></div>
+          <div class="sp-r"><span class="sl">Project Total (ex GST)</span><span class="sv" id="sp_ex_gst">—</span></div>
+          <div class="sp-r"><span class="sl">GST (10%)</span><span class="sv" id="sp_gst">—</span></div>
+          <div class="sp-grand"><span class="sl">Project Total (inc GST)</span><span class="sv" id="sp_grand">—</span></div>
         </div>
       </div>
     </div>
@@ -1547,11 +1581,13 @@ function normalizeRole(id, data){
     qty:  data.qty || data.required || 1,
     ord:  num(data.ord ?? data.ot) || 8,
     dsStd, dsOrd, nsStd, nsOrd,
-    // weekend defaults to weekday rate if not provided (legacy quotes)
-    dsStdWk: num(data.dsStdWk ?? dsStd),
-    dsOrdWk: num(data.dsOrdWk ?? dsOrd),
-    nsStdWk: num(data.nsStdWk ?? nsStd),
-    nsOrdWk: num(data.nsOrdWk ?? nsOrd),
+    // Weekend rates default to EMPTY — the user fills them in only when there is
+    // weekend work (no longer auto-copied from the weekday rate). Saved quotes
+    // that already have weekend values keep them.
+    dsStdWk: num(data.dsStdWk),
+    dsOrdWk: num(data.dsOrdWk),
+    nsStdWk: num(data.nsStdWk),
+    nsOrdWk: num(data.nsOrdWk),
     ph:      num(data.ph),
   };
 }
@@ -1614,6 +1650,27 @@ function syncR(id,field,val){
       return;
     }
   }
+}
+// Quick-fill: set Weekend rates = matching Weekday rate × factor, or
+// Public Holiday rate = weekday DS ORD × factor, for every role in the table.
+// One-time apply (like the roster Repeat buttons); fields stay editable after.
+function applyRateMult(type, which){
+  const inId = (which === 'wk' ? 'wkMult_' : 'phMult_') + type;
+  const f = parseFloat(document.getElementById(inId)?.value);
+  if(isNaN(f) || f < 0){ alert('Enter a valid multiplier (e.g. 1.5).'); return; }
+  const mul = v => Math.round((Number(v)||0) * f * 100) / 100;
+  (roles[type]||[]).forEach(r => {
+    if(which === 'wk'){
+      r.dsStdWk = mul(r.dsStd);
+      r.dsOrdWk = mul(r.dsOrd);
+      r.nsStdWk = mul(r.nsStd);
+      r.nsOrdWk = mul(r.nsOrd);
+    } else {
+      r.ph = mul(r.dsStd);   // DS ORD $/hr is the weekday dsStd field
+    }
+  });
+  renderRoles();
+  calculate();
 }
 function allRoles(){return[...roles.new,...roles.staff];}
 
@@ -1878,6 +1935,7 @@ function calculate(){
 
   let totQty=0, baseTotal=0, clientTotal=0;
   let sumWdDs=0, sumWdNs=0, sumWkDs=0, sumWkNs=0, sumPh=0;
+  let totWkHrs=0, totPhUnits=0;   // detect whether weekend / PH work exists
   const alloc=[];
 
   ['new','staff'].forEach(type=>{
@@ -1885,6 +1943,8 @@ function calculate(){
       const c=calcRoleCost(r);
       sumWdDs+=c.wdDsCost; sumWdNs+=c.wdNsCost;
       sumWkDs+=c.wkDsCost; sumWkNs+=c.wkNsCost; sumPh+=c.phCost;
+      totWkHrs += c.wk.dsStd + c.wk.dsOrd + c.wk.nsStd + c.wk.nsOrd;
+      totPhUnits += (c.phShifts||0);
       totQty += Number(r.qty)||0;
       baseTotal += c.total;
       clientTotal += c.clientCharge;
@@ -1918,8 +1978,24 @@ function calculate(){
   s2('sp_ph',AU(sumPh));
   s2('sp_labour', AU(labourCost));
   s2('sp_tc_labour',AU(clientTotal));s2('sp_tc_other',AU(otherCostsAmt));s2('sp_tc_markup',AU(markup));
-  s2('sp_grand',AU(grandTotal));
+  // GST applied once on the ex-GST total (line items stay ex-GST → no double GST)
+  const gstAmt = grandTotal * 0.10;
+  s2('sp_ex_gst', AU(grandTotal));
+  s2('sp_gst',    AU(gstAmt));
+  s2('sp_grand',  AU(grandTotal + gstAmt));
   renderOtherCostsSummary();
+
+  // Dynamic sections: only show Weekend / Public Holiday when that work exists
+  const hasWk = totWkHrs > 0, hasPh = totPhUnits > 0;
+  const allocTbl = document.getElementById('allocTbl');
+  if(allocTbl){
+    allocTbl.classList.toggle('hide-wk', !hasWk);
+    allocTbl.classList.toggle('hide-ph', !hasPh);
+  }
+  const _spRow = (id, show) => { const e = document.getElementById(id); if(e) e.style.display = show ? '' : 'none'; };
+  _spRow('sp_row_wk_ds', hasWk);
+  _spRow('sp_row_wk_ns', hasWk);
+  _spRow('sp_row_ph',    hasPh);
 
   // Alloc table
   const rate=v=> (Number(v)>0) ? AU(Number(v)) : '—';

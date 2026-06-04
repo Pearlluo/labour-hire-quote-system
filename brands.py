@@ -32,7 +32,7 @@ BRANDS: Dict[str, Dict[str, Any]] = {
         "banner_fg":   "1A1A1A",   # dark text
         "accent":      "2E8B8B",   # UI accent
         "xl_title_fg": "1A6060",   # Excel title text (dark teal)
-        "xl_title_bg": "E6F7F7",   # Excel title fill (light teal)
+        "xl_title_bg": "FFFFFF",   # Excel title fill (white)
         "logo_blob":   "brand/marlu-logo.jpg",
         # white banner → logo sits directly, no chip needed
         "logo_on_chip": False,
@@ -49,7 +49,7 @@ BRANDS: Dict[str, Dict[str, Any]] = {
         "banner_fg":   "1A1A1A",   # dark text
         "accent":      "6FBF1B",   # green
         "xl_title_fg": "2E6B0F",   # Excel title text (dark green)
-        "xl_title_bg": "EAF7DC",   # Excel title fill (light green)
+        "xl_title_bg": "FFFFFF",   # Excel title fill (white)
         "logo_blob":   "brand/westlink-logo.png",
         # transparent logo on a white banner → no chip needed
         "logo_on_chip": False,

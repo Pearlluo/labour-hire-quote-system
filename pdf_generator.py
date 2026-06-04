@@ -518,9 +518,20 @@ def generate_quote_pdf(payload: Dict[str, Any]) -> bytes:
         elems += [_rates_table(all_roles, PW)]
 
     # ── Manning schedule (full roster) ──
+    # A long roster won't fit the page width, so split it into multiple grids:
+    # ≤35 days = one table; longer = evenly-sized chunks of ≤35 days each.
     if all_roles and dates:
-        elems += [Spacer(1, 8), _band("MANNING SCHEDULE", PW, st), Spacer(1, 3),
-                  _manning_grid(all_roles, manning, shift_map, dates, multiplier, PW)]
+        elems += [Spacer(1, 8), _band("MANNING SCHEDULE", PW, st), Spacer(1, 3)]
+        MAX_DAYS = 32
+        n_chunks = (len(dates) + MAX_DAYS - 1) // MAX_DAYS
+        size     = (len(dates) + n_chunks - 1) // n_chunks
+        chunks   = [dates[i:i + size] for i in range(0, len(dates), size)]
+        for idx, chunk in enumerate(chunks):
+            if idx > 0:
+                elems += [Spacer(1, 5),
+                          Paragraph(f"Manning Schedule (continued — part {idx + 1} of {len(chunks)})",
+                                    st["klabel"])]
+            elems += [_manning_grid(all_roles, manning, shift_map, chunk, multiplier, PW)]
 
     # ── Labour allocation details ──
     if all_roles and dates:

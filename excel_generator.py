@@ -177,10 +177,13 @@ def _calc_role_cost(role: Dict, manning: Dict, shift_map: Dict,
     ds_ord_r = _num(role, "dsOrd", "dsOT") or ds_std_r
     ns_std_r = _num(role, "nsStd", "nsRate", "ns_rate")
     ns_ord_r = _num(role, "nsOrd", "nsOT") or ns_std_r
-    ds_std_wk = _num(role, "dsStdWk") or ds_std_r
-    ds_ord_wk = _num(role, "dsOrdWk") or ds_ord_r
-    ns_std_wk = _num(role, "nsStdWk") or ns_std_r
-    ns_ord_wk = _num(role, "nsOrdWk") or ns_ord_r
+    # Weekend rates are independent of the weekday rate — an empty weekend rate
+    # means $0 (no weekday fallback), matching the web UI. Weekend OT falls back
+    # to the weekend std rate only.
+    ds_std_wk = _num(role, "dsStdWk")
+    ds_ord_wk = _num(role, "dsOrdWk") or ds_std_wk
+    ns_std_wk = _num(role, "nsStdWk")
+    ns_ord_wk = _num(role, "nsOrdWk") or ns_std_wk
     ph_rate   = _num(role, "ph")
 
     rid = str(role.get("id", ""))
@@ -259,22 +262,40 @@ def _calc_role_cost(role: Dict, manning: Dict, shift_map: Dict,
 
 # ── Main generator ─────────────────────────────────────────────
 
-def _add_brand_logo(ws, brand, anchor_cell="W1", target_h_px=46):
-    """Float the brand logo near the top-right of the title band. Best-effort:
-    silently skips if the logo can't be loaded so a quote still generates."""
+def _col_px(width_chars) -> int:
+    """Approximate the pixel width of an Excel column from its character width."""
+    return int(round((width_chars or 10) * 7 + 5))
+
+
+def _add_brand_logo(ws, brand, col_w, target_h_px=56, row0=0):
+    """Place the brand logo enlarged and horizontally centred across the used
+    columns, anchored at the given 0-based row. Best-effort: silently skips if
+    the logo can't be loaded so a quote still generates."""
     try:
         import io as _io
         import storage
         from openpyxl.drawing.image import Image as XLImage
+        from openpyxl.utils import get_column_letter
         from PIL import Image as PILImage
         data = storage.get_bytes(brand["logo_blob"])
         if not data:
             return
         iw, ih = PILImage.open(_io.BytesIO(data)).size
+        h = target_h_px
+        w = int(iw * (h / ih))
+        px = [_col_px(col_w.get(c, 10)) for c in range(1, 28)]   # 27 used columns
+        target_left = max(0, sum(px) / 2 - w / 2)                # centre the logo
+        acc = 0
+        anchor_col = 1
+        for i, cw in enumerate(px, start=1):
+            if acc + cw >= target_left:
+                anchor_col = i
+                break
+            acc += cw
         img = XLImage(_io.BytesIO(data))
-        img.height = target_h_px
-        img.width  = int(iw * (target_h_px / ih))
-        img.anchor = anchor_cell
+        img.width = w
+        img.height = h
+        img.anchor = f"{get_column_letter(anchor_col)}{row0 + 1}"
         ws.add_image(img)
     except Exception:
         pass
@@ -326,13 +347,20 @@ def generate_quote_excel(payload: Dict[str, Any]) -> bytes:
     title_fg  = brand["xl_title_fg"]
     title_bg  = brand["xl_title_bg"]
 
-    ws.row_dimensions[row].height = 36
+    # Brand logo: enlarged and horizontally centred across the top of the sheet,
+    # with the title and sub-line centred just below it.
+    ws.row_dimensions[row].height = 46
+    for _c in range(1, 28):
+        ws.cell(row=row, column=_c).fill = _fill(title_bg)
+    _add_brand_logo(ws, brand, col_w, target_h_px=56, row0=row - 1)
+    row += 1
+
+    ws.row_dimensions[row].height = 30
     c = ws.cell(row=row, column=1, value=brand["excel_title"])
     c.font      = Font(bold=True, size=16, color=title_fg, name="Calibri")
-    c.alignment = _align("left", "center")
+    c.alignment = _align("center", "center")
     c.fill      = _fill(title_bg)
     _merge(ws, row, 1, row, 27)
-    _add_brand_logo(ws, brand, anchor_cell="W1")
     row += 1
 
     ws.row_dimensions[row].height = 16
@@ -342,7 +370,7 @@ def generate_quote_excel(payload: Dict[str, Any]) -> bytes:
                   value=f"Job: {job_id}   |   Generated: {generated}   |   Multiplier: ×{multiplier:.2f}")
     sub.font      = _font(italic=True, colour=DARK_GREY, size=9)
     sub.fill      = _fill(title_bg)
-    sub.alignment = _align("left", "center")
+    sub.alignment = _align("center", "center")
     _merge(ws, row, 1, row, 27)
     row += 2
 
@@ -814,7 +842,10 @@ def generate_quote_excel(payload: Dict[str, Any]) -> bytes:
         pricing_rows.append((lbl, amt, '$#,##0.00', False, False))
     pricing_rows.append(("Total Other Costs", other_total, '$#,##0.00', True, False))
     pricing_rows.append(None)
-    pricing_rows.append(("PROJECT TOTAL PRICE", grand_total, '$#,##0.00', True, True))
+    gst = grand_total * 0.10
+    pricing_rows.append(("Project Total (ex GST)",  grand_total,       '$#,##0.00', True,  False))
+    pricing_rows.append(("GST (10%)",               gst,               '$#,##0.00', False, False))
+    pricing_rows.append(("PROJECT TOTAL (inc GST)", grand_total + gst, '$#,##0.00', True,  True))
 
     for item in pricing_rows:
         if item is None:

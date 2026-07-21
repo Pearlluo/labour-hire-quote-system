@@ -74,8 +74,8 @@ flowchart TD
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/Pearlluo/marlu_labour_hire_online_quote.git
-cd marlu_labour_hire_online_quote
+git clone https://github.com/Pearlluo/labour-hire-quote-system.git
+cd labour-hire-quote-system
 ```
 
 ### 2. Install dependencies
@@ -97,7 +97,7 @@ SITE_NAME1=IMS
 
 # Azure Blob Storage
 BLOB_CONNECTION_STRING=your_azure_connection_string
-CONTAINER=marlu-online-quote
+CONTAINER=online-quote
 ```
 
 ### 4. Run
@@ -123,7 +123,7 @@ Visit `http://localhost:5000`. Run `python app.py` (no `--serve`) to refresh the
 ## Project Structure
 
 ```
-marlu_labour_hire_online_quote/
+labour-hire-quote-system/
 ├── app.py                 # Flask routes, page rendering, orchestration
 ├── graph_client.py        # Microsoft Graph auth + REST helpers
 ├── operations_folders.py  # SharePoint folder discovery & file upload
